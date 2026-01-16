@@ -97,6 +97,12 @@ class SaveToPostgresPipeline:
             "Gold": int(round(base_price * 1.50)),
             "Osmium": int(round(base_price * 2.00))
         }
+        
+        # GROWTH TIME to Number
+        raw_days = item.get('growth_time', '0')
+        # keep digit
+        clean_days = ''.join(filter(str.isdigit, str(raw_days))) 
+        growth_int = int(clean_days) if clean_days else 0
 
         if name in self.crop_map:
             if season not in self.crop_map[name]['seasons']:
@@ -104,7 +110,8 @@ class SaveToPostgresPipeline:
         else:
             crop_dict = dict(item)
             crop_dict['seasons'] = [season]
-            crop_dict['sell_prices'] = price_dict 
+            crop_dict['sell_prices'] = price_dict                  
+            crop_dict['growth_time'] = growth_int
             
             # Clean up unwanted fields
             if 'season' in crop_dict: del crop_dict['season'] 
