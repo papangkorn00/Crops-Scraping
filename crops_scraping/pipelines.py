@@ -98,11 +98,14 @@ class SaveToPostgresPipeline:
             "Osmium": int(round(base_price * 2.00))
         }
         
-        # GROWTH TIME to Number
+        # GROWTH TIME adn REGROWTH TIME to Number
         raw_days = item.get('growth_time', '0')
+        raw_Regrowth_days = item.get('re_growth_time', '0')
         # keep digit
         clean_days = ''.join(filter(str.isdigit, str(raw_days))) 
+        clean_Regrowth_days = ''.join(filter(str.isdigit, str(raw_Regrowth_days))) 
         growth_int = int(clean_days) if clean_days else 0
+        reGrowth_int = int(clean_Regrowth_days) if clean_Regrowth_days else 0
 
         if name in self.crop_map:
             if season not in self.crop_map[name]['seasons']:
@@ -112,6 +115,7 @@ class SaveToPostgresPipeline:
             crop_dict['seasons'] = [season]
             crop_dict['sell_prices'] = price_dict                  
             crop_dict['growth_time'] = growth_int
+            crop_dict['re_growth_time'] = reGrowth_int
             
             # Clean up unwanted fields
             if 'season' in crop_dict: del crop_dict['season'] 
@@ -133,6 +137,7 @@ class SaveToPostgresPipeline:
                 data['seasons'],
                 data.get('town_rank'),
                 data.get('growth_time'),
+                data.get('re_growth_time'),
                 data.get('possible_max_harvest'),
                 data.get('image_url'),
                 prices['Base'],
@@ -145,7 +150,7 @@ class SaveToPostgresPipeline:
         self.connection.commit()
         self.cur.close()
         self.connection.close()
-        print("Database Import Complete")
+        print("Database Import Completed")
 
 
 
