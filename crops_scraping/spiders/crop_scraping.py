@@ -1,9 +1,12 @@
 import scrapy
+import os
 from crops_scraping.items import CropItemsBySeasons
 
 class CropsSpider(scrapy.Spider):
     name = "crops"
-    start_urls = ["https://coralisland.fandom.com/wiki/Crop"]
+    # start_urls = ["https://coralisland.fandom.com/wiki/Crop"]
+    path = os.path.abspath("crops.html")
+    start_urls = [f'file:///{path}']
 
     def parse(self, response):
         season_map = {
@@ -36,6 +39,9 @@ class CropsSpider(scrapy.Spider):
 
                 # growth_time
                 crop['growth_time'] = row.css('td:nth-child(4)::text').get(default='').strip()
+                
+                # re_growth_time
+                crop['re_growth_time'] = row.css('td:nth-child(4) small::text').get(default='').strip()
 
                 # seed_price
                 crop['seed_price'] = row.css('td:nth-child(5)::attr(data-sort-value)').get()

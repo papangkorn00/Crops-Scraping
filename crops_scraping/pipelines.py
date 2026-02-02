@@ -97,6 +97,16 @@ class SaveToPostgresPipeline:
             "Gold": int(round(base_price * 1.50)),
             "Osmium": int(round(base_price * 2.00))
         }
+        
+        # GROWTH TIME adn REGROWTH TIME to Number
+        raw_days = item.get('growth_time', '0')
+        raw_regrowth_days = item.get('re_growth_time', '0')
+        # keep digit
+        clean_days = ''.join(filter(str.isdigit, str(raw_days))) 
+        clean_regrowth_days = ''.join(filter(str.isdigit, str(raw_regrowth_days))) 
+        growth_int = int(clean_days) if clean_days else 0
+        regrowth_int = int(clean_regrowth_days) if clean_regrowth_days else 0
+        seed_price = int(item.get('seed_price'))
 
         if name in self.crop_map:
             if season not in self.crop_map[name]['seasons']:
@@ -104,20 +114,21 @@ class SaveToPostgresPipeline:
         else:
             crop_dict = dict(item)
             crop_dict['seasons'] = [season]
-            crop_dict['sell_prices'] = price_dict 
+            crop_dict['sell_prices'] = price_dict                  
+            crop_dict['growth_time'] = growth_int
+            crop_dict['re_growth_time'] = regrowth_int
+            crop_dict['seed_price'] = seed_price
             
             # Clean up unwanted fields
             if 'season' in crop_dict: del crop_dict['season'] 
             if 'sell_price_base' in crop_dict: del crop_dict['sell_price_base']
-            if 'seed_price' in crop_dict: del crop_dict['seed_price'] 
+            # if 'seed_price' in crop_dict: del crop_dict['seed_price'] 
             
             self.crop_map[name] = crop_dict
             
         return item
 
     def close_spider(self):
-        # SQL Query insert, but if Name exists, Update it)
-        
         for data in self.crop_map.values():
             prices = data['sell_prices']
             
@@ -126,8 +137,10 @@ class SaveToPostgresPipeline:
                 data['seasons'],
                 data.get('town_rank'),
                 data.get('growth_time'),
+                data.get('re_growth_time'),
                 data.get('possible_max_harvest'),
                 data.get('image_url'),
+                data.get('seed_price'),
                 prices['Base'],
                 prices['Bronze'],
                 prices['Silver'],
@@ -138,7 +151,7 @@ class SaveToPostgresPipeline:
         self.connection.commit()
         self.cur.close()
         self.connection.close()
-        print("Database Import Complete")
+        print("Database Import Completed")
 
 
 
